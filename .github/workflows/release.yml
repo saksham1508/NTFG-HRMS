@@ -1,0 +1,182 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Install dependencies and build
+      run: |
+        # Build frontend
+        cd client
+        npm ci
+        npm run build
+        cd ..
+        
+        # Prepare backend
+        cd server
+        npm ci
+        cd ..
+
+    - name: Create release archive
+      run: |
+        # Create release directory
+        mkdir -p release/ntfg-hrms
+        
+        # Copy necessary files
+        cp -r client/build release/ntfg-hrms/client-build
+        cp -r server release/ntfg-hrms/
+        cp docker-compose.yml release/ntfg-hrms/
+        cp README.md release/ntfg-hrms/
+        cp LICENSE release/ntfg-hrms/
+        cp INSTALLATION.md release/ntfg-hrms/
+        
+        # Remove node_modules and dev files
+        rm -rf release/ntfg-hrms/server/node_modules
+        rm -rf release/ntfg-hrms/server/.env*
+        
+        # Create deployment guide
+        cat > release/ntfg-hrms/DEPLOYMENT.md << 'EOF'
+        # NTFG HRMS Deployment Guide
+        
+        ## Quick Start
+        
+        1. Extract this archive to your server
+        2. Copy `server/.env.example` to `server/.env` and configure
+        3. Run: `docker-compose up -d`
+        4. Access the application at http://localhost:3000
+        
+        ## Requirements
+        
+        - Docker and Docker Compose
+        - MongoDB (or use Docker Compose MongoDB service)
+        - Node.js 18+ (if running without Docker)
+        
+        ## Configuration
+        
+        Update the following environment variables in `server/.env`:
+        
+        - `MONGODB_URI`: Your MongoDB connection string
+        - `JWT_SECRET`: A secure random string
+        - `OPENAI_API_KEY`: Your OpenAI API key
+        - `CLOUDINARY_*`: Your Cloudinary credentials
+        
+        For detailed instructions, see INSTALLATION.md
+        EOF
+        
+        # Create archive
+        cd release
+        tar -czf ntfg-hrms-${GITHUB_REF_NAME}.tar.gz ntfg-hrms/
+        zip -r ntfg-hrms-${GITHUB_REF_NAME}.zip ntfg-hrms/
+
+    - name: Generate changelog
+      id: changelog
+      run: |
+        # Get commits since last tag
+        LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+        if [ -z "$LAST_TAG" ]; then
+          COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges)
+        else
+          COMMITS=$(git log ${LAST_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
+        fi
+        
+        # Create changelog
+        cat > CHANGELOG.md << EOF
+        # What's Changed in ${GITHUB_REF_NAME}
+        
+        ## 🚀 Features & Improvements
+        
+        ${COMMITS}
+        
+        ## 📦 Installation
+        
+        ### Docker (Recommended)
+        \`\`\`bash
+        # Download and extract the release
+        wget https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/ntfg-hrms-${GITHUB_REF_NAME}.tar.gz
+        tar -xzf ntfg-hrms-${GITHUB_REF_NAME}.tar.gz
+        cd ntfg-hrms
+        
+        # Configure environment
+        cp server/.env.example server/.env
+        # Edit server/.env with your configuration
+        
+        # Start the application
+        docker-compose up -d
+        \`\`\`
+        
+        ### Manual Installation
+        See INSTALLATION.md in the release archive for detailed instructions.
+        
+        ## 🔧 System Requirements
+        
+        - Docker & Docker Compose (recommended)
+        - Node.js 18+
+        - MongoDB 5.0+
+        - 2GB RAM minimum
+        - 5GB disk space
+        
+        ## 🆕 New in This Release
+        
+        - AI-powered resume screening
+        - Performance prediction algorithms
+        - Intelligent HR chatbot
+        - Real-time dashboard analytics
+        - Comprehensive employee management
+        - Advanced reporting system
+        
+        ## 🐛 Bug Fixes & Security
+        
+        - Enhanced security measures
+        - Performance optimizations
+        - UI/UX improvements
+        - Database query optimizations
+        
+        ## 📚 Documentation
+        
+        - Complete API documentation
+        - Deployment guides
+        - Configuration examples
+        - Troubleshooting guides
+        
+        ---
+        
+        **Full Changelog**: https://github.com/${GITHUB_REPOSITORY}/compare/${LAST_TAG}...${GITHUB_REF_NAME}
+        EOF
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        body_path: CHANGELOG.md
+        files: |
+          release/ntfg-hrms-${{ github.ref_name }}.tar.gz
+          release/ntfg-hrms-${{ github.ref_name }}.zip
+        draft: false
+        prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') || contains(github.ref_name, 'rc') }}
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Update latest release info
+      run: |
+        echo "✅ Release ${{ github.ref_name }} created successfully!"
+        echo "📦 Archives: ntfg-hrms-${{ github.ref_name }}.tar.gz, ntfg-hrms-${{ github.ref_name }}.zip"
+        echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"

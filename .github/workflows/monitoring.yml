@@ -1,0 +1,300 @@
+name: Monitoring & Alerts
+
+on:
+  schedule:
+    # Run every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  # Health monitoring
+  health-check:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check production health
+      id: health
+      run: |
+        # Add your production URL here
+        PROD_URL="${{ secrets.PRODUCTION_URL }}"
+        
+        if [ -z "$PROD_URL" ]; then
+          echo "Production URL not configured"
+          echo "status=skipped" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        
+        # Check backend health
+        if curl -f "$PROD_URL/api/health" --max-time 30; then
+          echo "Backend is healthy"
+          BACKEND_STATUS="✅ Healthy"
+        else
+          echo "Backend is unhealthy"
+          BACKEND_STATUS="❌ Unhealthy"
+        fi
+        
+        # Check frontend
+        if curl -f "$PROD_URL" --max-time 30; then
+          echo "Frontend is healthy"
+          FRONTEND_STATUS="✅ Healthy"
+        else
+          echo "Frontend is unhealthy"
+          FRONTEND_STATUS="❌ Unhealthy"
+        fi
+        
+        echo "backend_status=$BACKEND_STATUS" >> $GITHUB_OUTPUT
+        echo "frontend_status=$FRONTEND_STATUS" >> $GITHUB_OUTPUT
+        echo "status=completed" >> $GITHUB_OUTPUT
+
+    - name: Create health report
+      if: steps.health.outputs.status == 'completed'
+      run: |
+        cat > health-report.md << EOF
+        # 🏥 NTFG HRMS Health Report
+        
+        **Generated**: $(date)
+        **Environment**: Production
+        
+        ## Service Status
+        
+        | Service | Status |
+        |---------|--------|
+        | Backend API | ${{ steps.health.outputs.backend_status }} |
+        | Frontend | ${{ steps.health.outputs.frontend_status }} |
+        
+        ## System Information
+        
+        - **Last Deployment**: $(git log -1 --format="%cd" --date=short)
+        - **Current Version**: $(git describe --tags --always)
+        - **Uptime Check**: $(date)
+        
+        EOF
+
+    - name: Upload health report
+      if: steps.health.outputs.status == 'completed'
+      uses: actions/upload-artifact@v4
+      with:
+        name: health-report-${{ github.run_number }}
+        path: health-report.md
+        retention-days: 7
+
+  # Performance monitoring
+  performance-check:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        npm install -g lighthouse
+        npm install -g @lhci/cli
+
+    - name: Run Lighthouse audit
+      id: lighthouse
+      run: |
+        PROD_URL="${{ secrets.PRODUCTION_URL }}"
+        
+        if [ -z "$PROD_URL" ]; then
+          echo "Production URL not configured"
+          exit 0
+        fi
+        
+        # Run Lighthouse audit
+        lighthouse "$PROD_URL" --output=json --output-path=lighthouse-report.json --chrome-flags="--headless --no-sandbox" || true
+        
+        # Extract key metrics
+        if [ -f lighthouse-report.json ]; then
+          PERFORMANCE=$(cat lighthouse-report.json | jq -r '.categories.performance.score * 100')
+          ACCESSIBILITY=$(cat lighthouse-report.json | jq -r '.categories.accessibility.score * 100')
+          BEST_PRACTICES=$(cat lighthouse-report.json | jq -r '.categories["best-practices"].score * 100')
+          SEO=$(cat lighthouse-report.json | jq -r '.categories.seo.score * 100')
+          
+          echo "performance=$PERFORMANCE" >> $GITHUB_OUTPUT
+          echo "accessibility=$ACCESSIBILITY" >> $GITHUB_OUTPUT
+          echo "best_practices=$BEST_PRACTICES" >> $GITHUB_OUTPUT
+          echo "seo=$SEO" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Create performance report
+      if: steps.lighthouse.outputs.performance != ''
+      run: |
+        cat > performance-report.md << EOF
+        # 📊 NTFG HRMS Performance Report
+        
+        **Generated**: $(date)
+        **URL**: ${{ secrets.PRODUCTION_URL }}
+        
+        ## Lighthouse Scores
+        
+        | Metric | Score |
+        |--------|-------|
+        | Performance | ${{ steps.lighthouse.outputs.performance }}/100 |
+        | Accessibility | ${{ steps.lighthouse.outputs.accessibility }}/100 |
+        | Best Practices | ${{ steps.lighthouse.outputs.best_practices }}/100 |
+        | SEO | ${{ steps.lighthouse.outputs.seo }}/100 |
+        
+        ## Recommendations
+        
+        - Monitor performance scores regularly
+        - Optimize images and assets
+        - Implement caching strategies
+        - Review accessibility compliance
+        
+        EOF
+
+    - name: Upload performance report
+      if: steps.lighthouse.outputs.performance != ''
+      uses: actions/upload-artifact@v4
+      with:
+        name: performance-report-${{ github.run_number }}
+        path: |
+          performance-report.md
+          lighthouse-report.json
+        retention-days: 30
+
+  # Security monitoring
+  security-monitor:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run security scan
+      uses: securecodewarrior/github-action-add-sarif@v1
+      with:
+        sarif-file: 'security-scan.sarif'
+      continue-on-error: true
+
+    - name: Check for security advisories
+      run: |
+        # Check for GitHub security advisories
+        gh api repos/${{ github.repository }}/security-advisories --jq '.[] | {severity: .severity, summary: .summary}' > security-advisories.json || echo "[]" > security-advisories.json
+        
+        # Check npm audit
+        cd server && npm audit --json > ../npm-audit-backend.json || true
+        cd ../client && npm audit --json > ../npm-audit-frontend.json || true
+        cd ..
+        
+        # Create security report
+        cat > security-report.md << EOF
+        # 🔒 NTFG HRMS Security Report
+        
+        **Generated**: $(date)
+        
+        ## Security Advisories
+        
+        $(cat security-advisories.json | jq -r '.[] | "- **\(.severity | ascii_upcase)**: \(.summary)"' || echo "No active security advisories")
+        
+        ## Dependency Vulnerabilities
+        
+        ### Backend Dependencies
+        $(cat npm-audit-backend.json | jq -r '.metadata | "- Total: \(.totalDependencies) dependencies\n- Vulnerabilities: \(.vulnerabilities.total) total"' || echo "Audit data not available")
+        
+        ### Frontend Dependencies
+        $(cat npm-audit-frontend.json | jq -r '.metadata | "- Total: \(.totalDependencies) dependencies\n- Vulnerabilities: \(.vulnerabilities.total) total"' || echo "Audit data not available")
+        
+        ## Recommendations
+        
+        - Keep dependencies updated
+        - Review security advisories regularly
+        - Run security scans before deployment
+        - Monitor for new vulnerabilities
+        
+        EOF
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload security report
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-report-${{ github.run_number }}
+        path: |
+          security-report.md
+          security-advisories.json
+          npm-audit-*.json
+        retention-days: 30
+
+  # Notification aggregator
+  notify:
+    runs-on: ubuntu-latest
+    needs: [health-check, performance-check, security-monitor]
+    if: always()
+    
+    steps:
+    - name: Download reports
+      uses: actions/download-artifact@v4
+      with:
+        pattern: '*-report-*'
+        merge-multiple: true
+
+    - name: Create summary report
+      run: |
+        cat > monitoring-summary.md << EOF
+        # 📋 NTFG HRMS Monitoring Summary
+        
+        **Date**: $(date)
+        **Workflow Run**: #${{ github.run_number }}
+        
+        ## Job Status
+        
+        | Job | Status |
+        |-----|--------|
+        | Health Check | ${{ needs.health-check.result }} |
+        | Performance Check | ${{ needs.performance-check.result }} |
+        | Security Monitor | ${{ needs.security-monitor.result }} |
+        
+        ## Quick Actions
+        
+        - [View Workflow Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+        - [Download Reports](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+        - [Repository Issues](https://github.com/${{ github.repository }}/issues)
+        
+        ---
+        
+        *This report was generated automatically by GitHub Actions*
+        EOF
+
+    - name: Create issue on failure
+      if: contains(needs.*.result, 'failure')
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const title = `🚨 Monitoring Alert - ${new Date().toISOString().split('T')[0]}`;
+          const body = `
+          ## Monitoring Alert
+          
+          One or more monitoring jobs have failed:
+          
+          - Health Check: ${{ needs.health-check.result }}
+          - Performance Check: ${{ needs.performance-check.result }}
+          - Security Monitor: ${{ needs.security-monitor.result }}
+          
+          **Workflow Run**: [#${{ github.run_number }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          
+          Please investigate and resolve any issues.
+          
+          /cc @${{ github.actor }}
+          `;
+          
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: title,
+            body: body,
+            labels: ['monitoring', 'alert', 'high-priority']
+          });
+
+    - name: Upload summary
+      uses: actions/upload-artifact@v4
+      with:
+        name: monitoring-summary-${{ github.run_number }}
+        path: monitoring-summary.md
+        retention-days: 30

@@ -8,9 +8,20 @@
     "dev": "nodemon server.js",
     "test": "jest --watchAll=false",
     "test:watch": "jest --watchAll",
+    "test:coverage": "jest --coverage --watchAll=false",
+    "test:ci": "jest --ci --coverage --watchAll=false --reporters=default --reporters=jest-junit",
     "seed": "node utils/seedDatabase.js",
     "lint": "eslint . --ext .js",
-    "lint:fix": "eslint . --ext .js --fix"
+    "lint:fix": "eslint . --ext .js --fix",
+    "lint:ci": "eslint . --ext .js --format junit --output-file reports/eslint-report.xml",
+    "build": "echo 'Backend build completed'",
+    "docker:build": "docker build -t ntfg-hrms-backend .",
+    "docker:run": "docker run -p 5000:5000 ntfg-hrms-backend",
+    "health": "curl -f http://localhost:5000/api/health || exit 1",
+    "migrate": "node scripts/migrate.js",
+    "backup": "node scripts/backup.js",
+    "security:audit": "npm audit --audit-level=moderate",
+    "security:fix": "npm audit fix"
   },
   "dependencies": {
     "express": "^4.18.2",
