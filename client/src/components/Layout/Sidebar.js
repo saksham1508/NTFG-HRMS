@@ -164,7 +164,7 @@ const Sidebar = ({ onItemClick }) => {
         },
         {
           title: 'My Learning',
-          icon: <School />,
+          icon: <SchoolIcon />,
           path: '/training/my-learning',
           permission: null,
         },
