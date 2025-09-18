@@ -52,7 +52,7 @@ const QuickActions = ({ userRole }) => {
             description: 'Register new employee',
             icon: <AddIcon />,
             color: '#667eea',
-            path: '/employees/add',
+            path: '/employees/',
           },
           {
             title: 'Post Job',
@@ -119,7 +119,7 @@ const QuickActions = ({ userRole }) => {
             description: 'View performance data',
             icon: <TrendingUpIcon />,
             color: '#667eea',
-            path: '/performance/my-reviews',
+            path: '/performance',
           },
           {
             title: 'Training Programs',

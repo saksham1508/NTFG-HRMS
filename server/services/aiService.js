@@ -1,4 +1,4 @@
-const tf = require('@tensorflow/tfjs-node');
+const tf = require('@tensorflow/tfjs');
 const natural = require('natural');
 const compromise = require('compromise');
 const OpenAI = require('openai');
@@ -15,7 +15,7 @@ class AIService {
     this.tokenizer = new natural.WordTokenizer();
     this.stemmer = natural.PorterStemmer;
     this.sentiment = new natural.SentimentAnalyzer('English', 
-      natural.PorterStemmer, ['negation', 'question']);
+      natural.PorterStemmer, 'afinn');
     
     // Skill categories for better matching
     this.skillCategories = {

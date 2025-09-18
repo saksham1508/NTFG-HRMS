@@ -28,6 +28,10 @@ const AIService = require('./services/aiService');
 
 const app = express();
 const server = createServer(app);
+
+// Trust proxy - required for express-rate-limit when behind a proxy
+app.set('trust proxy', 1);
+
 const io = new Server(server, {
   cors: {
     origin: process.env.CLIENT_URL || "http://localhost:3000",

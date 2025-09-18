@@ -42,7 +42,8 @@ services:
       - "5000:5000"
     environment:
       NODE_ENV: production
-      MONGODB_URI: mongodb://admin:password123@mongodb:27017/ntfg_hrms?authSource=admin
+      # Use application DB user created by init-mongo.js
+      MONGODB_URI: mongodb://appuser:appPass123@mongodb:27017/ntfg_hrms?authSource=ntfg_hrms
       REDIS_URL: redis://redis:6379
       JWT_SECRET: your-super-secret-jwt-key-for-production
       CLIENT_URL: http://localhost:3000

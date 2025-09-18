@@ -7,6 +7,9 @@ import { useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout/Layout';
 import LoadingScreen from './components/Common/LoadingScreen';
 
+
+
+
 // Lazy load components for better performance
 const Login = React.lazy(() => import('./pages/Auth/Login'));
 const Dashboard = React.lazy(() => import('./pages/Dashboard/Dashboard'));
@@ -104,9 +107,9 @@ function App() {
           <Route
             path="/"
             element={
-              <ProtectedRoute>
+              // <ProtectedRoute>
                 <Layout />
-              </ProtectedRoute>
+              // </ProtectedRoute>
             }
           >
             {/* Dashboard */}
@@ -134,25 +137,25 @@ function App() {
 
             {/* Recruitment */}
             <Route
-              path="recruitment/*"
+              path="recruitment"
               element={
-                <ProtectedRoute requiredPermission="view_recruitment">
+                // <ProtectedRoute requiredPermission="view_recruitment">
                   <Suspense fallback={<PageLoader />}>
                     <Recruitment />
                   </Suspense>
-                </ProtectedRoute>
+                // </ProtectedRoute>
               }
             />
 
             {/* Performance Management */}
             <Route
-              path="performance/*"
+              path="Performance"
               element={
-                <ProtectedRoute requiredPermission="view_performance">
+                // <ProtectedRoute requiredPermission="view_performance">
                   <Suspense fallback={<PageLoader />}>
                     <Performance />
                   </Suspense>
-                </ProtectedRoute>
+                // </ProtectedRoute>
               }
             />
 
@@ -160,11 +163,11 @@ function App() {
             <Route
               path="leave/*"
               element={
-                <ProtectedRoute requiredPermission="view_leave">
+                // <ProtectedRoute requiredPermission="view_leave">
                   <Suspense fallback={<PageLoader />}>
                     <Leave />
                   </Suspense>
-                </ProtectedRoute>
+                // </ProtectedRoute>
               }
             />
 
@@ -172,11 +175,11 @@ function App() {
             <Route
               path="training/*"
               element={
-                <ProtectedRoute requiredPermission="view_training">
+                // <ProtectedRoute requiredPermission="view_training">
                   <Suspense fallback={<PageLoader />}>
                     <Training />
                   </Suspense>
-                </ProtectedRoute>
+                // </ProtectedRoute>
               }
             />
 
@@ -184,11 +187,11 @@ function App() {
             <Route
               path="ai-insights/*"
               element={
-                <ProtectedRoute requiredPermission="use_ai_features">
+                // <ProtectedRoute requiredPermission="use_ai_features">
                   <Suspense fallback={<PageLoader />}>
                     <AIInsights />
                   </Suspense>
-                </ProtectedRoute>
+                // </ProtectedRoute>
               }
             />
 

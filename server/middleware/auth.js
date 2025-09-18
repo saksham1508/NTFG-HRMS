@@ -12,7 +12,27 @@ const authMiddleware = async (req, res, next) => {
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev_secret');
+
+    // If mock token, attach mock user without DB
+    if (decoded.mock && process.env.MOCK_AUTH === 'true') {
+      req.user = {
+        _id: decoded.userId,
+        email: decoded.email,
+        role: decoded.role || 'hr',
+        isActive: true,
+        mock: true,
+        profile: { firstName: 'HR', lastName: 'Mock' },
+        employment: { department: 'HR', position: 'HR Manager', status: 'active', hireDate: new Date('2020-01-01') },
+        permissions: decoded.permissions || ['view_employees', 'manage_employees'],
+        hasPermission(permission) {
+          if (this.role === 'admin') return true;
+          return Array.isArray(this.permissions) && this.permissions.includes(permission);
+        }
+      };
+      return next();
+    }
+
     const user = await User.findById(decoded.userId).select('-password');
     
     if (!user) {
@@ -64,7 +84,12 @@ const requirePermission = (permission) => {
       });
     }
 
-    if (!req.user.hasPermission(permission)) {
+    // Support mock user object having hasPermission or fallback
+    const has = typeof req.user.hasPermission === 'function'
+      ? req.user.hasPermission(permission)
+      : (req.user.role === 'admin' || (Array.isArray(req.user.permissions) && req.user.permissions.includes(permission)));
+
+    if (!has) {
       return res.status(403).json({
         success: false,
         message: `Access denied. Required permission: ${permission}`
@@ -103,11 +128,24 @@ const optionalAuth = async (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     
     if (token) {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const user = await User.findById(decoded.userId).select('-password');
-      
-      if (user && user.isActive) {
-        req.user = user;
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev_secret');
+
+      // If mock token, attach mock user without DB
+      if (decoded.mock && process.env.MOCK_AUTH === 'true') {
+        req.user = {
+          _id: decoded.userId,
+          email: decoded.email,
+          role: decoded.role || 'hr',
+          isActive: true,
+          profile: { firstName: 'HR', lastName: 'Mock' },
+          employment: { department: 'HR', position: 'HR Manager', status: 'active', hireDate: new Date('2020-01-01') },
+          permissions: decoded.permissions || ['view_employees', 'manage_employees']
+        };
+      } else {
+        const user = await User.findById(decoded.userId).select('-password');
+        if (user && user.isActive) {
+          req.user = user;
+        }
       }
     }
     

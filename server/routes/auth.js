@@ -115,6 +115,38 @@ router.post('/login', [
 
     const { email, password } = req.body;
 
+    // Development-only mock auth shortcut
+    if (process.env.MOCK_AUTH === 'true') {
+      const mockUser = {
+        _id: 'mock-hr-user',
+        employeeId: 'EMP-MOCK-001',
+        email: email || 'hr.mock@example.com',
+        role: 'hr',
+        isActive: true,
+        lastLogin: new Date(),
+        profile: { firstName: 'HR', lastName: 'Mock' },
+        employment: { department: 'HR', position: 'HR Manager', status: 'active', hireDate: new Date('2020-01-01') },
+        skills: [],
+        // Grant broader permissions in mock to avoid 403s during development
+        permissions: ['view_employees', 'manage_employees', 'view_analytics', 'use_ai_features', 'manage_recruitment']
+      };
+
+      const token = jwt.sign(
+        { userId: mockUser._id, email: mockUser.email, role: mockUser.role, permissions: mockUser.permissions, mock: true },
+        process.env.JWT_SECRET || 'dev_secret',
+        { expiresIn: process.env.JWT_EXPIRE || '7d' }
+      );
+
+      return res.json({
+        success: true,
+        message: 'Login successful (mock)',
+        data: {
+          user: mockUser,
+          token
+        }
+      });
+    }
+
     // Find user by email
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
@@ -174,6 +206,17 @@ router.post('/login', [
 // @access  Private
 router.get('/me', authMiddleware, async (req, res) => {
   try {
+    // If using mock auth, return the mock user directly without DB
+    if (req.user && req.user.mock && process.env.MOCK_AUTH === 'true') {
+      return res.json({
+        success: true,
+        data: {
+          user: req.user,
+          permissions: req.user.permissions || []
+        }
+      });
+    }
+
     const user = await User.findById(req.user._id)
       .populate('employment.manager', 'profile.firstName profile.lastName email')
       .select('-password');

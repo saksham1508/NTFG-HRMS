@@ -88,12 +88,13 @@ export const AuthProvider = ({ children }) => {
       enabled: !!state.token,
       retry: false,
       onSuccess: (data) => {
+        // 'data' here is already the payload from interceptor
         dispatch({
           type: AUTH_ACTIONS.LOGIN_SUCCESS,
           payload: {
-            user: data.data.user,
+            user: data.user,
             token: state.token,
-            permissions: data.data.permissions,
+            permissions: data.permissions,
           },
         });
       },
@@ -125,7 +126,8 @@ export const AuthProvider = ({ children }) => {
       dispatch({ type: AUTH_ACTIONS.LOGIN_START });
 
       const response = await api.post('/auth/login', credentials);
-      const { user, token } = response.data.data;
+      // Interceptor returns payload; extract nested data
+      const { data: { user, token } } = response;
 
       // Store token in localStorage
       localStorage.setItem('token', token);
@@ -135,7 +137,7 @@ export const AuthProvider = ({ children }) => {
 
       // Get user permissions
       const userResponse = await api.get('/auth/me');
-      const permissions = userResponse.data.data.permissions;
+      const { permissions } = userResponse.data;
 
       dispatch({
         type: AUTH_ACTIONS.LOGIN_SUCCESS,
@@ -163,7 +165,7 @@ export const AuthProvider = ({ children }) => {
       dispatch({ type: AUTH_ACTIONS.LOGIN_START });
 
       const response = await api.post('/auth/register', userData);
-      const { user, token } = response.data.data;
+      const { data: { user, token } } = response;
 
       // Store token in localStorage
       localStorage.setItem('token', token);
@@ -173,7 +175,7 @@ export const AuthProvider = ({ children }) => {
 
       // Get user permissions
       const userResponse = await api.get('/auth/me');
-      const permissions = userResponse.data.data.permissions;
+      const { permissions } = userResponse.data;
 
       dispatch({
         type: AUTH_ACTIONS.LOGIN_SUCCESS,

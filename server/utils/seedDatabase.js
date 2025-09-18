@@ -4,7 +4,6 @@ require('dotenv').config();
 
 // Import models
 const User = require('../models/User');
-const Employee = require('../models/Employee');
 const JobPosting = require('../models/JobPosting');
 const Application = require('../models/Application');
 
@@ -30,6 +29,7 @@ const seedUsers = async () => {
 
     const users = [
       {
+        employeeId: 'NTFG-ADMIN-001',
         email: 'admin@ntfg.com',
         password: await bcrypt.hash('admin123', 12),
         role: 'admin',
@@ -37,14 +37,11 @@ const seedUsers = async () => {
           firstName: 'System',
           lastName: 'Administrator',
           phone: '+1-555-0001',
-          avatar: null,
         },
         employment: {
-          employeeId: 'NTFG-ADMIN-001',
           department: 'IT',
           position: 'System Administrator',
-          startDate: new Date('2023-01-01'),
-          salary: 120000,
+          hireDate: new Date('2023-01-01'),
           status: 'active',
         },
         permissions: [
@@ -56,9 +53,9 @@ const seedUsers = async () => {
           'manage_system',
         ],
         isActive: true,
-        isVerified: true,
       },
       {
+        employeeId: 'NTFG-HR-001',
         email: 'hr@ntfg.com',
         password: await bcrypt.hash('hr123', 12),
         role: 'hr',
@@ -66,14 +63,11 @@ const seedUsers = async () => {
           firstName: 'Sarah',
           lastName: 'Johnson',
           phone: '+1-555-0002',
-          avatar: null,
         },
         employment: {
-          employeeId: 'NTFG-HR-001',
           department: 'Human Resources',
           position: 'HR Manager',
-          startDate: new Date('2023-02-01'),
-          salary: 85000,
+          hireDate: new Date('2023-02-01'),
           status: 'active',
         },
         permissions: [
@@ -83,9 +77,9 @@ const seedUsers = async () => {
           'use_ai_features',
         ],
         isActive: true,
-        isVerified: true,
       },
       {
+        employeeId: 'NTFG-MGR-001',
         email: 'manager@ntfg.com',
         password: await bcrypt.hash('manager123', 12),
         role: 'manager',
@@ -93,14 +87,11 @@ const seedUsers = async () => {
           firstName: 'Michael',
           lastName: 'Chen',
           phone: '+1-555-0003',
-          avatar: null,
         },
         employment: {
-          employeeId: 'NTFG-MGR-001',
           department: 'Engineering',
           position: 'Engineering Manager',
-          startDate: new Date('2023-03-01'),
-          salary: 95000,
+          hireDate: new Date('2023-03-01'),
           status: 'active',
         },
         permissions: [
@@ -110,9 +101,9 @@ const seedUsers = async () => {
           'use_ai_features',
         ],
         isActive: true,
-        isVerified: true,
       },
       {
+        employeeId: 'NTFG-EMP-001',
         email: 'employee@ntfg.com',
         password: await bcrypt.hash('employee123', 12),
         role: 'employee',
@@ -120,14 +111,11 @@ const seedUsers = async () => {
           firstName: 'Emily',
           lastName: 'Davis',
           phone: '+1-555-0004',
-          avatar: null,
         },
         employment: {
-          employeeId: 'NTFG-EMP-001',
           department: 'Engineering',
           position: 'Software Developer',
-          startDate: new Date('2023-04-01'),
-          salary: 75000,
+          hireDate: new Date('2023-04-01'),
           status: 'active',
         },
         permissions: [
@@ -137,13 +125,12 @@ const seedUsers = async () => {
           'view_payslips',
         ],
         isActive: true,
-        isVerified: true,
       },
     ];
 
-    await User.insertMany(users);
+    const created = await User.insertMany(users);
     console.log('✅ Sample users created');
-    return users;
+    return created;
   } catch (error) {
     console.error('❌ Error seeding users:', error);
     throw error;
@@ -164,7 +151,7 @@ const seedJobPostings = async () => {
         type: 'full-time',
         description: 'We are looking for a Senior Full Stack Developer to join our growing engineering team. You will be responsible for developing and maintaining our AI-powered HRMS platform.',
         requirements: [
-          'Bachelor\'s degree in Computer Science or related field',
+          "Bachelor's degree in Computer Science or related field",
           '5+ years of experience in full-stack development',
           'Proficiency in React.js, Node.js, and MongoDB',
           'Experience with AI/ML technologies is a plus',
@@ -203,7 +190,7 @@ const seedJobPostings = async () => {
         type: 'full-time',
         description: 'Join our AI team to develop cutting-edge machine learning solutions for HR processes. You will work on resume screening, performance prediction, and other AI-powered features.',
         requirements: [
-          'Master\'s degree in Computer Science, AI, or related field',
+          "Master's degree in Computer Science, AI, or related field",
           '3+ years of experience in machine learning',
           'Proficiency in Python, TensorFlow, PyTorch',
           'Experience with NLP and computer vision',
@@ -242,7 +229,7 @@ const seedJobPostings = async () => {
         type: 'full-time',
         description: 'We are seeking a talented UX/UI Designer to create intuitive and beautiful user experiences for our HRMS platform.',
         requirements: [
-          'Bachelor\'s degree in Design or related field',
+          "Bachelor's degree in Design or related field",
           '4+ years of UX/UI design experience',
           'Proficiency in Figma, Sketch, Adobe Creative Suite',
           'Experience with design systems',
@@ -292,7 +279,7 @@ const seedDatabase = async () => {
     await connectDB();
     
     const users = await seedUsers();
-    const jobPostings = await seedJobPostings();
+    await seedJobPostings();
     
     // Update job postings with postedBy references
     const hrUser = users.find(user => user.role === 'hr');
