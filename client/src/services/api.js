@@ -1,8 +1,14 @@
 import axios from 'axios';
 
-// Create axios instance
+// Create axios instance with robust baseURL handling
+// Ensures '/api' prefix is present whether or not REACT_APP_API_URL is provided
+const API_HOST = (process.env.REACT_APP_API_URL || '').replace(/\/+$/, ''); // trim trailing slash
+const BASE_URL = API_HOST
+  ? `${API_HOST}${API_HOST.endsWith('/api') ? '' : '/api'}`
+  : '/api';
+
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || '/api',
+  baseURL: BASE_URL,
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',

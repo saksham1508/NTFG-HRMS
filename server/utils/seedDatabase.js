@@ -57,7 +57,7 @@ const seedUsers = async () => {
       {
         employeeId: 'NTFG-HR-001',
         email: 'hr@ntfg.com',
-        password: await bcrypt.hash('hr123', 12),
+        password: await bcrypt.hash('hr1234', 12),
         role: 'hr',
         profile: {
           firstName: 'Sarah',
@@ -291,7 +291,7 @@ const seedDatabase = async () => {
     console.log('🎉 Database seeding completed successfully!');
     console.log('\n📋 Demo Accounts Created:');
     console.log('Admin: admin@ntfg.com / admin123');
-    console.log('HR: hr@ntfg.com / hr123');
+    console.log('HR: hr@ntfg.com / hr1234');
     console.log('Manager: manager@ntfg.com / manager123');
     console.log('Employee: employee@ntfg.com / employee123');
     

@@ -132,7 +132,7 @@ const Layout = () => {
           flexGrow: 1,
           width: { md: `calc(100% - ${drawerWidth}px)` },
           minHeight: '100vh',
-          backgroundColor: '#f5f5f5',
+          backgroundColor: (theme) => theme.palette.background.default,
         }}
       >
         <Toolbar /> {/* Spacer for fixed AppBar */}

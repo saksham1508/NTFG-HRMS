@@ -27,6 +27,7 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import { useSocket } from '../../contexts/SocketContext';
 import { useNavigate } from 'react-router-dom';
+import { useThemeMode } from '../../contexts/ThemeModeContext';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -35,7 +36,8 @@ const Header = () => {
   
   const [anchorEl, setAnchorEl] = useState(null);
   const [notificationAnchorEl, setNotificationAnchorEl] = useState(null);
-  const [darkMode, setDarkMode] = useState(false);
+  const { mode, toggleMode } = useThemeMode();
+  const darkMode = mode === 'dark';
 
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -80,8 +82,7 @@ const Header = () => {
   };
 
   const handleDarkModeToggle = () => {
-    setDarkMode(!darkMode);
-    // TODO: Implement dark mode theme switching
+    toggleMode();
   };
 
   const unreadCount = getUnreadCount();

@@ -118,6 +118,77 @@ app.get('/health', (req, res) => {
 });
 
 // API Routes
+// Provide mock dashboard data when running in MOCK_AUTH + SKIP_DB mode (faster dev startup)
+if (process.env.MOCK_AUTH === 'true' && process.env.SKIP_DB === 'true') {
+  app.get('/api/dashboard/overview', (req, res) => {
+    res.json({
+      success: true,
+      data: {
+        common: {
+          totalEmployees: 42,
+          activeJobPostings: 3,
+          myDepartment: 'HR',
+          myPosition: 'HR Manager'
+        },
+        hr: {
+          pendingApplications: 5,
+          todayApplications: 2,
+          upcomingInterviews: 1,
+          pendingLeaveRequests: 0,
+          employeesByDepartment: [
+            { _id: 'Engineering', count: 12 },
+            { _id: 'HR', count: 3 }
+          ],
+          recentHires: [
+            { profile: { firstName: 'Alex', lastName: 'Kim' }, employment: { hireDate: new Date(), department: 'Engineering' } }
+          ]
+        }
+      }
+    });
+  });
+
+  app.get('/api/dashboard/activities', (req, res) => {
+    res.json({
+      success: true,
+      data: {
+        activities: [
+          {
+            id: '1',
+            type: 'employee',
+            title: 'New Employee Added',
+            description: 'John Doe joined Engineering',
+            timestamp: new Date(),
+            status: 'active'
+          }
+        ]
+      }
+    });
+  });
+
+  app.get('/api/dashboard/events', (req, res) => {
+    res.json({
+      success: true,
+      data: {
+        events: [
+          {
+            id: 'company_meeting_1',
+            type: 'meeting',
+            title: 'All Hands Meeting',
+            description: 'Monthly company-wide meeting',
+            date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            duration: 120,
+            location: 'Main Conference Room'
+          }
+        ]
+      }
+    });
+  });
+
+  app.get('/api/dashboard/performance-metrics', (req, res) => {
+    res.json({ success: true, data: { employeeGrowth: [], applicationStats: [] } });
+  });
+}
+
 app.use('/api/auth', authRoutes);
 app.use('/api/employees', authMiddleware, employeeRoutes);
 app.use('/api/dashboard', authMiddleware, dashboardRoutes);
@@ -229,6 +300,14 @@ io.on('connection', (socket) => {
 // Database connection
 const connectDB = async () => {
   try {
+    // Fast path: skip DB entirely in mock mode
+    if (process.env.MOCK_AUTH === 'true' && process.env.SKIP_DB === 'true') {
+      console.warn('⚠️  SKIPPING MongoDB connection (MOCK_AUTH + SKIP_DB enabled)');
+      await AIService.initialize();
+      console.log('✅ AI Service initialized (no DB)');
+      return;
+    }
+
     let mongoURI = process.env.MONGODB_URI;
 
     if (!mongoURI) {
@@ -256,7 +335,7 @@ const connectDB = async () => {
           {
             employeeId: 'NTFG-HR-001',
             email: 'hr@ntfg.com',
-            password: await bcrypt.hash('hr123', 10),
+            password: await bcrypt.hash('hr1234', 10),
             role: 'hr',
             profile: { firstName: 'Sarah', lastName: 'Johnson', phone: '+1-555-0002' },
             employment: { department: 'Human Resources', position: 'HR Manager', hireDate: new Date('2023-02-01'), status: 'active' },

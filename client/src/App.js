@@ -16,6 +16,7 @@ const Dashboard = React.lazy(() => import('./pages/Dashboard/Dashboard'));
 const Employees = React.lazy(() => import('./pages/Employees/Employees'));
 const Recruitment = React.lazy(() => import('./pages/Recruitment/Recruitment'));
 const Performance = React.lazy(() => import('./pages/Performance/Performance'));
+const MyGoals = React.lazy(() => import('./pages/Performance/MyGoals'));
 const Leave = React.lazy(() => import('./pages/Leave/Leave'));
 const Training = React.lazy(() => import('./pages/Training/Training'));
 const AIInsights = React.lazy(() => import('./pages/AI/AIInsights'));
@@ -149,11 +150,31 @@ function App() {
 
             {/* Performance Management */}
             <Route
-              path="Performance"
+              path="performance"
               element={
                 // <ProtectedRoute requiredPermission="view_performance">
                   <Suspense fallback={<PageLoader />}>
                     <Performance />
+                  </Suspense>
+                // </ProtectedRoute>
+              }
+            />
+            <Route
+              path="performance/my-goals"
+              element={
+                // <ProtectedRoute requiredPermission="view_performance">
+                  <Suspense fallback={<PageLoader />}>
+                    <MyGoals />
+                  </Suspense>
+                // </ProtectedRoute>
+              }
+            />
+            <Route
+              path="performance/goals"
+              element={
+                // <ProtectedRoute requiredPermission="view_performance">
+                  <Suspense fallback={<PageLoader />}>
+                    <MyGoals />
                   </Suspense>
                 // </ProtectedRoute>
               }

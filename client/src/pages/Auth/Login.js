@@ -43,6 +43,7 @@ const Login = () => {
   const {
     control,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -346,8 +347,8 @@ const Login = () => {
                           size="small"
                           fullWidth
                           onClick={() => {
-                            control._formValues.email = 'admin@ntfg.com';
-                            control._formValues.password = 'admin123';
+                            setValue('email', 'admin@ntfg.com');
+                            setValue('password', 'admin123');
                             handleSubmit(onSubmit)();
                           }}
                         >
@@ -360,8 +361,8 @@ const Login = () => {
                           size="small"
                           fullWidth
                           onClick={() => {
-                            control._formValues.email = 'hr@ntfg.com';
-                            control._formValues.password = 'hr123';
+                            setValue('email', 'hr@ntfg.com');
+                            setValue('password', 'hr1234');
                             handleSubmit(onSubmit)();
                           }}
                         >
