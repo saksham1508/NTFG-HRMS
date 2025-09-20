@@ -8,25 +8,14 @@ import {
   Avatar,
   Chip,
   LinearProgress,
-  IconButton,
   Button,
   Paper,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemAvatar,
-  Divider,
 } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
   People as PeopleIcon,
   Work as WorkIcon,
   Assessment as AssessmentIcon,
-  Notifications as NotificationsIcon,
-  CalendarToday as CalendarIcon,
-  ArrowUpward as ArrowUpwardIcon,
-  ArrowDownward as ArrowDownwardIcon,
-  MoreVert as MoreVertIcon,
 } from '@mui/icons-material';
 import { useQuery } from 'react-query';
 import { motion } from 'framer-motion';

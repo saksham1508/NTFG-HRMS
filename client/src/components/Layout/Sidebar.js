@@ -31,7 +31,7 @@ import {
   MenuBook,
   SmartToy,
   Analytics,
-  AdminPanelSettings,
+
 } from '@mui/icons-material';
 
 import { useAuth } from '../../contexts/AuthContext';

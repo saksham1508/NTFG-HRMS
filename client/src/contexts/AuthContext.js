@@ -81,7 +81,7 @@ export const AuthProvider = ({ children }) => {
   const queryClient = useQueryClient();
 
   // Query to get current user
-  const { data: userData, isLoading: userLoading, error } = useQuery(
+  const { isLoading: userLoading } = useQuery(
     'currentUser',
     () => api.get('/auth/me'),
     {
@@ -302,7 +302,7 @@ export const AuthProvider = ({ children }) => {
     return () => {
       api.interceptors.response.eject(interceptor);
     };
-  }, [state.isAuthenticated]);
+  }, [state.isAuthenticated, logout]);
 
   const value = {
     // State

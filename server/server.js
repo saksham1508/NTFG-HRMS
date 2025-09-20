@@ -22,6 +22,8 @@ const employeeRoutes = require('./routes/employees');
 const dashboardRoutes = require('./routes/dashboard');
 const aiRoutes = require('./routes/ai');
 const chatbotRoutes = require('./routes/chatbot');
+const attendanceRoutes = require('./routes/attendance');
+const performanceRoutes = require('./routes/performance');
 
 // Import services
 const AIService = require('./services/aiService');
@@ -194,6 +196,8 @@ app.use('/api/employees', authMiddleware, employeeRoutes);
 app.use('/api/dashboard', authMiddleware, dashboardRoutes);
 app.use('/api/ai', authMiddleware, aiRoutes);
 app.use('/api/chatbot', authMiddleware, chatbotRoutes);
+app.use('/api/attendance', authMiddleware, attendanceRoutes);
+app.use('/api/performance', authMiddleware, performanceRoutes);
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {

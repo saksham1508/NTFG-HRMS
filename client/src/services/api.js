@@ -261,4 +261,17 @@ export const exportData = (endpoint, filename, params = {}) => {
   });
 };
 
+export const attendanceAPI = {
+  getSummary: (employeeId, params) => api.get(`/attendance/${employeeId}/summary`, { params }),
+  getRecords: (employeeId, params) => api.get(`/attendance/${employeeId}/records`, { params }),
+  clockIn: (employeeId) => api.post(`/attendance/${employeeId}/clock-in`),
+  clockOut: (employeeId) => api.post(`/attendance/${employeeId}/clock-out`),
+};
+
+export const performanceByEmployeeAPI = {
+  getSummary: (employeeId) => api.get(`/performance/${employeeId}/summary`),
+  getReviews: (employeeId, params) => api.get(`/performance/${employeeId}/reviews`, { params }),
+  createReview: (employeeId, reviewData) => api.post(`/performance/${employeeId}/reviews`, reviewData),
+};
+
 export default api;

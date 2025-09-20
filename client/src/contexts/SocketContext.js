@@ -123,13 +123,7 @@ export const SocketProvider = ({ children }) => {
         setSocket(null);
         setIsConnected(false);
       };
-    } else {
-      // Clean up socket if user is not authenticated
-      if (socket) {
-        socket.close();
-        setSocket(null);
-        setIsConnected(false);
-      }
+
     }
   }, [isAuthenticated, user]);
 

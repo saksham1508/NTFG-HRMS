@@ -70,7 +70,6 @@ import {
   Grid,
   Chip,
   LinearProgress,
-  Divider,
 } from "@mui/material";
 import {
   Person as PersonIcon,

@@ -7,8 +7,6 @@ import {
   Toolbar,
   Typography,
   IconButton,
-  useTheme,
-  useMediaQuery,
   Fab,
   Zoom,
 } from '@mui/material';
@@ -26,8 +24,8 @@ import { useAuth } from '../../contexts/AuthContext';
 const drawerWidth = 280;
 
 const Layout = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const { user } = useAuth();

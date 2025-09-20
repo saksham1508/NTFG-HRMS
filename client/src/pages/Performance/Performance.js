@@ -78,6 +78,7 @@ import {
 } from "@mui/icons-material";
 import { Helmet } from "react-helmet-async";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const employees = [
   {
@@ -113,6 +114,7 @@ const getPerformanceStatus = (score) => {
 };
 
 const Performance = () => {
+  const navigate = useNavigate();
   return (
     <>
       <Helmet>
@@ -150,7 +152,10 @@ const Performance = () => {
             return (
               <Grid item xs={12} md={6} key={emp.id}>
                 <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.3 }}>
-                  <Card sx={{ borderRadius: 3, boxShadow: 3 }}>
+                  <Card 
+                    sx={{ borderRadius: 3, boxShadow: 3, cursor: 'pointer' }}
+                    onClick={() => navigate(`/performance/employee/${emp.id}`)}
+                  >
                     <CardContent>
                       {/* Employee Info */}
                       <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>

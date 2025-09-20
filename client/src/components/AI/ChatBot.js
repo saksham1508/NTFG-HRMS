@@ -8,7 +8,6 @@ import {
   Paper,
   Chip,
   Avatar,
-  Divider,
   Button,
   CircularProgress,
   Rating,
@@ -25,10 +24,9 @@ import {
   ThumbUp as ThumbUpIcon,
   ThumbDown as ThumbDownIcon,
   Refresh as RefreshIcon,
-  Help as HelpIcon,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { useQuery, useMutation } from 'react-query';
 
 import { chatbotAPI } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -37,7 +35,6 @@ import { useSocket } from '../../contexts/SocketContext';
 const ChatBot = ({ open, onClose }) => {
   const { user } = useAuth();
   const { socket } = useSocket();
-  const queryClient = useQueryClient();
   
   const [message, setMessage] = useState('');
   const [conversationId, setConversationId] = useState(null);

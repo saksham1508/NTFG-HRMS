@@ -6,7 +6,7 @@ import {
   Box,
   List,
   ListItem,
-  ListItemText,
+
   Chip,
   Skeleton,
   Button,
